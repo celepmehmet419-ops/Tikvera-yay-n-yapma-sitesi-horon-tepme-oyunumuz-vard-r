@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tikvera — Şehir Horonu Canlı Yayın Oyunu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Chakra Petch (for gaming/neon headers) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for crisp icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Chakra Petch', 'sans-serif'],
+                    },
+                    colors: {
+                        tikvera: {
+                            bg: '#09090d',
+                            surface: '#12131a',
+                            surfaceHover: '#1b1d28',
+                            border: '#242736',
+                            neon: '#00f59b',
+                            neonDark: '#00c47c',
+                            purple: '#9146ff',
+                            pink: '#ff2a85',
+                            text: '#efeff1',
+                            muted: '#9ca3af'
+                        }
+                    },
+                    boxShadow: {
+                        'neon': '0 0 20px rgba(0, 245, 155, 0.35)',
+                        'neon-sm': '0 0 10px rgba(0, 245, 155, 0.25)',
+                        'purple-glow': '0 0 20px rgba(145, 70, 255, 0.35)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #09090d; }
+        ::-webkit-scrollbar-thumb { background: #242736; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f59b; }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.15); }
+        }
+        .animate-live-dot { animation: livePulse 1.5s infinite ease-in-out; }
+        .glass-panel { background: rgba(18, 19, 26, 0.85); backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body class="bg-tikvera-bg text-tikvera-text font-sans antialiased selection:bg-tikvera-neon selection:text-black overflow-x-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-tikvera-border px-3 sm:px-6 h-16 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-6">
+            <a href="#" class="flex items-center gap-2.5 group">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-tikvera-neon to-tikvera-purple p-[2px] shadow-neon-sm">
+                    <div class="w-full h-full bg-tikvera-bg rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-bolt text-tikvera-neon text-lg"></i>
+                    </div>
+                </div>
+                <span class="font-display font-bold text-2xl tracking-wider text-white">TIK<span class="text-tikvera-neon">VERA</span></span>
+            </a>
+            <div class="hidden sm:flex items-center gap-2 bg-tikvera-surface border border-tikvera-border px-3 py-1 rounded-xl text-xs text-tikvera-neon font-semibold">
+                <i class="fa-brands fa-tiktok"></i>
+                <span>TikTok Live İnteraktif Oyun Modu: Aktif</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <button class="bg-tikvera-neon text-black font-extrabold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-neon-sm">
+                <i class="fa-solid fa-gamepad mr-1"></i> Şehir Horonu Oyunu
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="max-w-[1720px] mx-auto px-3 sm:px-6 py-4 sm:py-6">
+        
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mb-10">
+            
+            <!-- Left: Game Canvas Area -->
+            <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-4">
+                
+                <div class="relative w-full aspect-video bg-[#1a1a2e] rounded-2xl overflow-hidden border border-tikvera-border shadow-2xl flex flex-col justify-between" id="player-wrapper">
+                    
+                    <!-- Top HUD over Canvas -->
+                    <div class="absolute top-4 left-4 z-20 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-xl border border-tikvera-neon/30">
+                        <h1 class="font-display font-bold text-lg sm:text-xl text-[#ffd166] m-0 flex items-center gap-2">
+                            <span>🔥 ŞEHİR HORONU LIVE 🔥</span>
+                        </h1>
+                        <p class="text-xs sm:text-sm text-[#a8dadc] m-0 mt-0.5">
+                            Oyuncu Sayısı: <span id="player-count" class="text-tikvera-neon font-bold">1</span> | 
+                            Oyun Modu: <span id="dance-mode" class="text-tikvera-purple font-bold">HORON</span>
+                        </p>
+                    </div>
+
+                    <!-- Game Canvas -->
+                    <canvas id="gameCanvas" class="w-full h-full block absolute inset-0"></canvas>
+
+                    <!-- Control Panel Overlay inside player -->
+                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-black/80 backdrop-blur-md px-4 py-3 rounded-2xl border border-tikvera-neon/40 flex flex-wrap gap-2 items-center justify-center shadow-neon-sm max-w-full">
+                        <button onclick="simulateGift('🌹 Gül')" class="bg-[#e94560] hover:bg-[#ff5e78] text-white text-xs font-bold px-3 py-2 rounded-xl transition active:scale-95">🌹 Gül At (Katıl)</button>
+                        <button onclick="simulateGift('💖 Kalp')" class="bg-[#e94560] hover:bg-[#ff5e78] text-white text-xs font-bold px-3 py-2 rounded-xl transition active:scale-95">💖 Kalp At (Katıl)</button>
+                        <button onclick="simulateGift('🦁 Aslan', true)" class="bg-[#ffd166] text-black hover:brightness-110 text-xs font-bold px-3 py-2 rounded-xl transition active:scale-95">🦁 Aslan (Halay Başı)</button>
+                        <div class="w-[1px] h-6 bg-gray-600 mx-1"></div>
+                        <button onclick="changeDance('HORON')" class="bg-tikvera-surface hover:bg-tikvera-surfaceHover text-tikvera-neon border border-tikvera-neon/40 text-xs font-bold px-3 py-2 rounded-xl transition">⚡ Horon</button>
+                        <button onclick="changeDance('HALAY')" class="bg-tikvera-surface hover:bg-tikvera-surfaceHover text-tikvera-purple border border-tikvera-purple/40 text-xs font-bold px-3 py-2 rounded-xl transition">🧣 Halay</button>
+                        <button onclick="changeDance('KOLBASTI')" class="bg-tikvera-surface hover:bg-tikvera-surfaceHover text-pink-400 border border-pink-400/40 text-xs font-bold px-3 py-2 rounded-xl transition">🕺 Kolbastı</button>
+                    </div>
+
+                </div>
+
+                <!-- Info Bar -->
+                <div class="bg-tikvera-surface border border-tikvera-border rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-white text-base">TikTok Canlı Yayın İnteraktif Halk Oyunları</h2>
+                        <p class="text-xs text-gray-400">İzleyiciler TikTok üzerinden hediye gönderdiklerinde otomatik olarak halkaya katılır ve dans etmeye başlar!</p>
+                    </div>
+                    <span class="bg-tikvera-neon/15 text-tikvera-neon border border-tikvera-neon/30 text-xs font-bold px-3 py-1.5 rounded-xl">
+                        OBS Browser Source Uyumlu
+                    </span>
+                </div>
+            </div>
+
+            <!-- Right: Chat Sidebar -->
+            <aside class="lg:col-span-4 xl:col-span-3 bg-tikvera-surface border border-tikvera-border rounded-2xl flex flex-col h-[500px] lg:h-[650px] overflow-hidden">
+                <div class="px-4 py-3 border-b border-tikvera-border flex items-center justify-between bg-tikvera-bg/40">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-tikvera-neon"></i>
+                        <h2 class="font-bold text-sm uppercase tracking-wider text-white">Oyun Etkinlik Akışı</h2>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-tikvera-neon animate-pulse"></span>
+                </div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-3.5 space-y-2.5 text-xs">
+                    <div class="bg-tikvera-bg p-2.5 rounded-xl border border-tikvera-border">
+                        <span class="text-tikvera-neon font-bold">Sistem:</span> Şehir Horonu oyunu başlatıldı. Gül veya Kalp atarak halkaya katılabilirsiniz!
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <!-- Game Script Integration -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let dancers = [];
+        let rotationAngle = 0;
+        let particles = [];
+        let currentDance = 'HORON';
+
+        const sampleNames = ["Ahmet_61", "KaradenizKızı", "Trabzonlu", "HalaycıBaşı", "Zeynep_TR", "Efe_06", "LazZiya", "AnkaraBeyi", "Sürmeneli", "Canan_34"];
+        const colors = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93", "#ff9f1c", "#2ec4b6", "#e71d36"];
+
+        // İlk oyuncu / Yayıncı
+        addDancer("YAYINCI (Sen)", "👑", true);
+
+        function addDancer(username, giftIcon, isLeader = false) {
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            const newDancer = {
+                name: username,
+                gift: giftIcon,
+                color: randomColor,
+                isLeader: isLeader,
+                x: canvas.width / 2,
+                y: canvas.height / 2
+            };
+
+            if (isLeader) {
+                dancers.forEach(d => d.isLeader = false);
+                dancers.unshift(newDancer);
+            } else {
+                dancers.push(newDancer);
+            }
+
+            document.getElementById('player-count').innerText = dancers.length;
+            
+            // Sohbet paneline log ekle
+            const chatDiv = document.getElementById('chat-messages');
+            chatDiv.innerHTML += `<div class="bg-tikvera-bg p-2 rounded-xl border border-tikvera-border"><span class="text-tikvera-purple font-bold">${username}</span> ${giftIcon} göndererek oyuna katıldı!</div>`;
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        function simulateGift(giftName, isBigGift = false) {
+            const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)] + "_" + Math.floor(Math.random() * 99);
+            addDancer(randomName, giftName, isBigGift);
+        }
+
+        function changeDance(danceType) {
+            currentDance = danceType;
+            document.getElementById('dance-mode').innerText = danceType;
+        }
+
+        // Oyun Döngüsü
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Zemin Efekti (Halk Oyunları Sahnesi)
+            ctx.fillStyle = '#12131a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            rotationAngle += 0.015;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2 + 20;
+            const radius = Math.min(centerX, centerY) * 0.45;
+
+            // Halkayı Çiz
+            dancers.forEach((dancer, index) => {
+                const angle = rotationAngle + (index * (Math.PI * 2 / dancers.length));
+                let x = centerX + Math.cos(angle) * radius;
+                let y = centerY + Math.sin(angle) * (radius * 0.6); // Oval perspektif
+
+                // Kolbastı / Halay hareket simülasyonu
+                if (currentDance === 'KOLBASTI') {
+                    y += Math.sin(rotationAngle * 5 + index) * 15;
+                } else if (currentDance === 'HORON') {
+                    y -= Math.abs(Math.sin(rotationAngle * 4 + index)) * 12;
+                }
+
+                // Dansçı Çemberi
+                ctx.beginPath();
+                ctx.arc(x, y, 22, 0, Math.PI * 2);
+                ctx.fillStyle = dancer.color;
+                ctx.fill();
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = dancer.isLeader ? '#ffd166' : '#ffffff';
+                ctx.stroke();
+
+                // İsim ve Hediye İkonu
+                ctx.fillStyle = 'white';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(dancer.name, x, y - 30);
+                ctx.fillText(dancer.gift, x, y + 35);
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
